@@ -6,6 +6,13 @@ from datetime import datetime
 
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
 
+'''add Pause Button
+    add Slider with hours
+    make scale
+    what to do with outliers
+    looks
+    hover'''
+
 #boxplot with average delay per hour
 #frames with for loop
 
@@ -39,6 +46,38 @@ print(hour_groups)
 
 #print(substring_hour_delay)
 
+data = []
+frame_test= []
+fig = go.Figure()
+boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '')
+for i in range(len(hour_groups)):
+    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY']))))
+
+fig.add_trace(boxplot_3)
+fig.frames = frame_test
+#fig.add_trace(frame_test)
+fig.update_layout(title= 'Average delay of all flights per hour',title_font_size= 25, title_font_family= 'Arial Black',
+                  xaxis_title= 'Average delay in min', xaxis_title_font_family= 'Arial Black',
+                  xaxis_range= [-50, 100],
+    updatemenus=[dict(
+            type='buttons',
+            buttons=[dict(label= 'Play',
+                          method= 'animate',
+                          args=[None, dict(frame= dict(duration= 700, redraw = True), mode= 'immediate')]),
+                    dict(label= 'Pause',
+                         method= 'animate',
+                         args= [None, dict(frame= dict(duration= 0, redraw= False), mode= 'immediate')])
+                    ])])
+fig.show()
+
+
+
+
+
+
+
+
+
 
 # df_boxplot_destination['SCHEDULED_DESTINATION'] = pd.to_datetime(df_boxplot_destination['SCHEDULED_DESTINATION'], format= '%Y-%m-%d %H:%M:%S')
 # print(df_boxplot_destination)
@@ -50,21 +89,3 @@ print(hour_groups)
 # for i in range(len(df_boxplot_destination)):
 #     if (datetime.strptime('2015-01-01 00:00:00', format= '%Y-%m-%d %H:%M:%S') <= df_boxplot_destination['SCHEDULED_DESTINATION'][i]) & (df_boxplot_destination['SCHEDULED_DESTINATION'][i] <=datetime.strptime('2015-01-01 04:00:00', format= '%Y-%m-%d %H:%M:%S') ):
 #         print("HALLO")
-
-data = []
-frame_test= []
-fig = go.Figure()
-boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'])
-for i in range(len(hour_groups)):
-    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY']))))
-print(frame_test)
-fig.add_trace(boxplot_3)
-fig.frames = frame_test
-#fig.add_trace(frame_test)
-fig.update_layout(updatemenus=[dict(
-            type="buttons",
-            buttons=[dict(label="Play",
-                          method="animate",
-                          args=[None]),
-                    ])]) #add a slider
-fig.show()

@@ -4,8 +4,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
-small_df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/b877d354d6bc52e6ce840572e40b0497/raw/19759410471073756a388dada5fcb40109f0d13e/flights_subset_cleaned.csv', sep=',')
-
+df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airlines.csv', sep= ',')
 #------falls zeit ist noch total number of short,   flights hinschreiben und die ändert sich beim abwählen
 colours = ['#f5c5cb', '#f5c7a9', '#e2f0cb', '#f7e5ad', '#ff9aa2', '#d8f7ad', 
           '#aadef7', '#a3a8f0', '#a4b8ac', '#f09ec8', '#d3a8f0', '#55cbcd','#c9f7e0', '#c9d2f7']
@@ -20,7 +19,10 @@ colours = ['#f5c5cb', '#f5c7a9', '#e2f0cb', '#f7e5ad', '#ff9aa2', '#d8f7ad',
 
 #-------getting the data how I want it-------------
 #-------adding new column with haul typ for easier categorization-------
+df_airline_names.rename(columns={'AIRLINE' : 'AIRLINE_FULL_NAME'}, inplace=True)
+
 df_haul_by_distance = df[['DISTANCE','AIRLINE']]
+df_haul_by_distance = pd.merge(df_haul_by_distance, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
 
 conditions=[(df_haul_by_distance['DISTANCE'] < 807),(df_haul_by_distance['DISTANCE'] >= 807)&(df_haul_by_distance['DISTANCE'] <= 2765),(df_haul_by_distance['DISTANCE'] > 2765)]
 values = ['short haul','mid haul','long haul']
@@ -38,34 +40,55 @@ df_haul_flights_grouped = df_haul_flights_grouped.iloc[::-1]
 # print(df_haul_flights_grouped.index)
 
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
+
+print(df_haul_flights_grouped)
 # print(df_haul_by_distance_airline)
 # print(df_haul_by_distance_airline['HAUL_TYP'].unique())
 
 # print(df_haul_by_distance['HAUL_TYP'].count())
-print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count())
+# print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count())
 
-#------overall haul types-----------
+
+#---------making the figure------------
 fig = go.Figure()
 bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
              y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
-            )            
+             name = 'all flights')            
 fig.add_trace(bar)
-fig.show()
-#if there is time: add number of flights to bar chart that changed depending on how many are selected
 
-#---------specific airlines and haul types------------
-fig = go.Figure()
 
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.index[i], marker= dict(color= colours[i]))
+                          name = df_haul_flights_grouped.index[i], marker= dict(color= colours[i]), hovertext=df_haul_flights_grouped.index[i] ,visible= False)
     fig.add_trace(bar_short)
+    
 
-# fig.update_traces(hoverinfo = )
+#------------array for the visibility of the different graphs--------------------
+all_flight_show= []
+airlines_show=[]
+for visible in range(15):
+    if visible == 0:
+        all_flight_show.append(True)
+        airlines_show.append(False)
+    else :
+        all_flight_show.append(False)
+        airlines_show.append(True)
+#---------------------------------------------------------------------------------
+
+fig.update_traces(hoverinfo= 'text + y')
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25,
+                #   title_xanchor = 'center', title_yanchor = 'top',
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
-                  legend_title_text = 'Airlines', coloraxis= dict(colorbar= dict(title= 'Legend Title')))
+                  xaxis_title= 'Haul Typ', yaxis_title= 'Number of Flights', xaxis_title_font_family= 'Arial Black', yaxis_title_font_family= 'Arial Black',
+                  legend_title_text = 'Airlines', coloraxis= dict(colorbar= dict(title= 'Legend Title')),
+                  updatemenus= [
+                      dict(active= 0, buttons = list([
+                          dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
+                          dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}])
+                          ])
+                      )
+                  ])
 fig.show()
 
 
