@@ -6,8 +6,8 @@ from datetime import datetime
 
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
 
-'''add Pause Button
-    add Slider with hours
+'''
+    add Slider with hours(doesnt fucking work)
     make scale
     what to do with outliers
     looks
@@ -30,7 +30,19 @@ df_boxplot_destination = df_boxplot_destination.sort_values(by= 'SCHEDULED_DESTI
 #print(df_boxplot_destination.groupby(['DESTINATION_HOUR_DELAY']).count())
 
 print(df_boxplot_destination.dtypes)
+#-------------because the slider isnt fucking working--------------------
+time= ['01 Jan: 03 am','01 Jan: 04 am','01 Jan: 05 am','01 Jan: 06 am','01 Jan: 07 am','01 Jan: 08 am','01 Jan: 09 am','01 Jan: 10 am','01 Jan: 11 am','01 Jan: 12 pm','01 Jan: 01 pm','01 Jan: 02 pm','01 Jan: 03 pm','01 Jan: 04 pm','01 Jan: 05 pm','01 Jan: 06 pm','01 Jan: 07 pm','01 Jan: 08 pm','01 Jan: 09 pm','01 Jan: 10 pm','01 Jan: 11 pm', '02 Jan: 12 am', '02 Jan: 01 am', '02 Jan: 02 am', '02 Jan: 03 am', '02 Jan: 04 am', '02 Jan: 05 am', '02 Jan: 07 am']
 
+#-------this didnt work atm for a day scale but i did it manually now------
+day=[]
+for number in range(28):
+    if number< 21:
+        day.append('01.01.2015')
+    else: day.append('02.01.2015')
+print(day)    
+
+
+#------
 hours= []
 for i in range(len(df_boxplot_destination)):
     hours.append(df_boxplot_destination['DESTINATION_HOUR_DELAY'][i])
@@ -40,7 +52,7 @@ hour_groups = []
 for hour in hours:
     hour_groups.append(df_boxplot_destination[df_boxplot_destination['DESTINATION_HOUR_DELAY']== hour])
 
-print(hour_groups)
+#print(df_boxplot_destination['DESTINATION_HOUR_DELAY'])
 #array of dataframes
         
 
@@ -49,14 +61,13 @@ print(hour_groups)
 data = []
 frame_test= []
 fig = go.Figure()
-boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '')
+boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am')
 for i in range(len(hour_groups)):
-    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY']))))
+    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i] ))))
 
 fig.add_trace(boxplot_3)
 fig.frames = frame_test
-#fig.add_trace(frame_test)
-fig.update_layout(title= 'Average delay of all flights per hour',title_font_size= 25, title_font_family= 'Arial Black',
+fig.update_layout(title= 'Average delay of all flights at arrival per hour',title_font_size= 25, title_font_family= 'Arial Black',
                   xaxis_title= 'Average delay in min', xaxis_title_font_family= 'Arial Black',
                   xaxis_range= [-50, 100],
     updatemenus=[dict(
@@ -67,7 +78,17 @@ fig.update_layout(title= 'Average delay of all flights per hour',title_font_size
                     dict(label= 'Pause',
                          method= 'animate',
                          args= [None, dict(frame= dict(duration= 0, redraw= False), mode= 'immediate')])
-                    ])])
+                    ])],
+    sliders= [dict(active = 0, yanchor= 'bottom', xanchor= 'left', currentvalue= dict(font= dict(size= 10), prefix=
+                                                                                      'text-before-value-on-display', visible= True,
+                                                                                      xanchor= 'right'),
+                                                                                      transition= dict(duration= 700, easing= 'cubic-in-out'),
+                                                                                      pad= dict(b= 20, t= 70), len= 0.9, x= 0.1, y = 0,
+                                                                                      steps= [dict(method= 'animate', label=
+                                                                                                   'label-for-frame', value= 'value-for-frame(defaults to label)', args= [dict(frame= dict(duration= 700, redraw= False),
+                                                                                                          mode= 'immediate')]) ])]
+                    
+                    )
 fig.show()
 
 
