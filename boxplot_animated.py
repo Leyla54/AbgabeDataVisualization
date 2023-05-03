@@ -61,9 +61,9 @@ for hour in hours:
 data = []
 frame_test= []
 fig = go.Figure()
-boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am')
+boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am', marker_color= '#228B22')
 for i in range(len(hour_groups)):
-    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i] ))))
+    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i], marker_color= '#228B22' ))))
 
 fig.add_trace(boxplot_3)
 fig.frames = frame_test
