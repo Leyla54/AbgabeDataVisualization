@@ -86,7 +86,7 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                       dict(active= 0, buttons = list([
                           dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
                           dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}])
-                          ])
+                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top'
                       )
                   ])
 fig.show()
