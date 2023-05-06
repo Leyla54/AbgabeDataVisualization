@@ -69,7 +69,7 @@ fig.add_trace(boxplot_3)
 fig.frames = frame_test
 fig.update_layout(title= 'Average delay of all flights at arrival per hour',title_font_size= 25, title_font_family= 'Arial Black',
                   xaxis_title= 'Average delay in min', xaxis_title_font_family= 'Arial Black',
-                  xaxis_range= [-50, 100],
+                  xaxis_range= [-50, 100], title_x = 0.5,
     updatemenus=[dict(
             type='buttons',
             buttons=[dict(label= 'Play',

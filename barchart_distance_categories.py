@@ -53,7 +53,7 @@ print(df_haul_flights_grouped)
 fig = go.Figure()
 bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
              y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
-             name = 'all flights')            
+             name = 'all flights', marker= dict(color= '#6f78a5'))            
 fig.add_trace(bar)
 
 
@@ -77,7 +77,7 @@ for visible in range(15):
 #---------------------------------------------------------------------------------
 
 fig.update_traces(hoverinfo= 'text + y')
-fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25,
+fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
                 #   title_xanchor = 'center', title_yanchor = 'top',
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
                   xaxis_title= 'Haul Typ', yaxis_title= 'Number of Flights', xaxis_title_font_family= 'Arial Black', yaxis_title_font_family= 'Arial Black',
@@ -86,7 +86,7 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                       dict(active= 0, buttons = list([
                           dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
                           dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}])
-                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top'
+                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.05
                       )
                   ])
 fig.show()
