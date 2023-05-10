@@ -9,11 +9,15 @@ df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd
 df_airports= pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airports.csv', sep= ',')
 df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airlines.csv', sep= ',')
 
+#------------------------------------------------------------
 #-------linechart for arrivals & departures per hour---------
-#it's a forecast
+#------------------------------------------------------------
+#it's a forecast for air traffic
 
+#-------data preparation-------------------------------------
 df_linechart= df[[ 'FLIGHT_NUMBER','SCHEDULED_DEPARTURE', 'SCHEDULED_DESTINATION']]
 
+#getting a substring to add as a new column
 substring_departure = []
 for i in range(len(df_linechart)):
     substring_departure.append(df_linechart['SCHEDULED_DEPARTURE'][i][9:13:1])
@@ -25,8 +29,7 @@ df_linechart['DEPARTURE_HOUR'] = df_linechart['DEPARTURE_HOUR'].str.replace('1 '
 
 df_linechart_departure =  df_linechart.groupby('DEPARTURE_HOUR')['FLIGHT_NUMBER'].count().reset_index(name= 'COUNT')
 
-#print(df_linechart_departure)
-
+#getting a substring to add as a new column
 substring_arrival= []
 for i in range(len(df_linechart)):
     substring_arrival.append(df_linechart['SCHEDULED_DESTINATION'][i][9:13:1])
@@ -37,15 +40,23 @@ df_linechart_arrival = df_linechart.groupby('ARRIVAL_HOUR')['FLIGHT_NUMBER'].cou
 df_linechart_arrival['ARRIVAL_HOUR'] = df_linechart_arrival['ARRIVAL_HOUR'].str.replace('1 ', '')
 df_linechart_arrival['ARRIVAL_HOUR'] = df_linechart_arrival['ARRIVAL_HOUR'].str.replace('2 ', '2 Jan ')
 
-print(df_linechart_arrival)
+#-------hovertemplate---------------------------------------
+
+hovertemplate= '<b>%{text}</b>' + '<br>Number of flights: %{y}<br>' + 'Time of day: %{x}<extra></extra>'
+
+
+
+#-------visualization---------------------------------------
 
 fig= go.Figure()
 
 linechart_departure = go.Scatter(x= df_linechart_departure['DEPARTURE_HOUR'], y= df_linechart_departure['COUNT'],
-                              mode= 'lines+markers', line= dict(color= '#6f78a5', dash= 'dot', width=3), name= 'Departures', marker_size= 7)
+                              mode= 'lines+markers', line= dict(color= '#6f78a5', dash= 'dot', width=3), name= 'Departures', marker_size= 7,
+                                text= 'Departures', hovertemplate=hovertemplate)
 
 linechart_arrival = go.Scatter(x= df_linechart_arrival['ARRIVAL_HOUR'], y= df_linechart_arrival['COUNT'],
-                               mode= 'lines+markers', line= dict(color= '#7eb774', dash= 'dot', width= 3), name= 'Arrivals', marker_size= 7)
+                               mode= 'lines+markers', line= dict(color= '#7eb774', dash= 'dot', width= 3), name= 'Arrivals', marker_size= 7,
+                               text= 'Arrivals', hovertemplate= hovertemplate)
 
 fig.add_trace(linechart_departure)
 fig.add_trace(linechart_arrival)
