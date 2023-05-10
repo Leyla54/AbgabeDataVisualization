@@ -45,7 +45,7 @@ linechart_departure = go.Scatter(x= df_linechart_departure['DEPARTURE_HOUR'], y=
                               mode= 'lines+markers', line= dict(color= '#6f78a5', dash= 'dot', width=3), name= 'Departures', marker_size= 7)
 
 linechart_arrival = go.Scatter(x= df_linechart_arrival['ARRIVAL_HOUR'], y= df_linechart_arrival['COUNT'],
-                               mode= 'lines+markers', line= dict(color= '#12ce02', dash= 'dot', width= 3), name= 'Arrivals', marker_size= 7)
+                               mode= 'lines+markers', line= dict(color= '#7eb774', dash= 'dot', width= 3), name= 'Arrivals', marker_size= 7)
 
 fig.add_trace(linechart_departure)
 fig.add_trace(linechart_arrival)

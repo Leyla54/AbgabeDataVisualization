@@ -42,50 +42,63 @@ df_haul_flights_grouped = df_haul_flights_grouped.iloc[::-1]
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
 
 print(df_haul_flights_grouped)
-# print(df_haul_by_distance_airline)
+#print(df_haul_by_distance_airline)
 # print(df_haul_by_distance_airline['HAUL_TYP'].unique())
 
 # print(df_haul_by_distance['HAUL_TYP'].count())
 # print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count())
 
-
+array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
 #---------making the figure------------
 fig = go.Figure()
 bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
              y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
-             name = 'all flights', marker= dict(color= '#6f78a5'))            
+             name = 'all flights', marker= dict(color= '#6f78a5'), text= array_count,
+             textposition='auto')            
 fig.add_trace(bar)
 
 
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.index[i], marker= dict(color= colours[i]), hovertext=df_haul_flights_grouped.index[i] ,visible= False)
+                          name = df_haul_flights_grouped.index[i], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)), hovertext=df_haul_flights_grouped.index[i] ,visible= False)
     fig.add_trace(bar_short)
-    
 
+long_haul_pie = go.Pie(labels= df_haul_flights_grouped.index , values= df_haul_flights_grouped['long haul'],hole=0.5, textinfo= 'value', visible=False,
+                       )
+fig.add_trace(long_haul_pie)
+    
+#marker= dict(line= dict(color = 'black', width= 3)),
 #------------array for the visibility of the different graphs--------------------
 all_flight_show= []
 airlines_show=[]
-for visible in range(15):
+pie_show=[]
+for visible in range(16):
     if visible == 0:
         all_flight_show.append(True)
         airlines_show.append(False)
+        pie_show.append(False)
+    elif visible == 15:
+        all_flight_show.append(False)
+        airlines_show.append(False)
+        pie_show.append(True)
     else :
         all_flight_show.append(False)
         airlines_show.append(True)
+        pie_show.append(False)
 #---------------------------------------------------------------------------------
 
-fig.update_traces(hoverinfo= 'text + y')
+#fig.update_traces(hoverinfo= 'text + y')
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
                 #   title_xanchor = 'center', title_yanchor = 'top',
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
                   xaxis_title= 'Haul Typ', yaxis_title= 'Number of Flights', xaxis_title_font_family= 'Arial Black', yaxis_title_font_family= 'Arial Black',
-                  legend_title_text = 'Airlines', coloraxis= dict(colorbar= dict(title= 'Legend Title')),
+                  legend_title_text = 'Airlines', coloraxis= dict(colorbar= dict(title= 'Legend Title')), waterfallgroupgap= 1, 
                   updatemenus= [
                       dict(active= 0, buttons = list([
                           dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
-                          dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}])
+                          dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}]),
+                          dict(label= 'Pie chart for long haul flights', method= 'update', args= [{'visible': pie_show}, {'title': 'Pie chart'}]),
                           ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.05
                       )
                   ])
