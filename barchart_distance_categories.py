@@ -10,8 +10,10 @@ colours = ['#f5c5cb', '#f5c7a9', '#e2f0cb', '#f7e5ad', '#ff9aa2', '#d8f7ad',
           '#aadef7', '#a3a8f0', '#a4b8ac', '#f09ec8', '#d3a8f0', '#55cbcd','#c9f7e0', '#c9d2f7']
 
 colours_long_haul= ['#e2f0cb','#f7e5ad','#a3a8f0','#d3a8f0','#c9f7e0','#c9d2f7']
-#bar chart showing overall flights categorized by short, medium and long haul 
-# and seperated by colour for each airline which is visible with a hover 
+
+
+#----------bar chart showing overall flights categorized by short, medium and long haul----------------------------------
+#----------and seperated by colour for each airline which is visible with a hover (thats not working properly atm)-------
 
 #short haul: less than 807 (average of 1,100-1,500 km)
 #mid haul: 807 - 2765
@@ -19,84 +21,42 @@ colours_long_haul= ['#e2f0cb','#f7e5ad','#a3a8f0','#d3a8f0','#c9f7e0','#c9d2f7']
 #distance is in miles
 #scheduled time is in minutes
 
-#-------getting the data how I want it-------------
-#-------adding new column with haul typ for easier categorization-------
-df_airline_names.rename(columns={'AIRLINE' : 'AIRLINE_FULL_NAME'}, inplace=True)
+#----------data preparation----------------------------------------------------------------------------------------------
 
+df_airline_names.rename(columns={'AIRLINE' : 'AIRLINE_FULL_NAME'}, inplace=True)
 df_haul_by_distance = df[['DISTANCE','AIRLINE']]
 df_haul_by_distance = pd.merge(df_haul_by_distance, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
-print(df_haul_by_distance)
 
+#categorize flights by their distance
 conditions=[(df_haul_by_distance['DISTANCE'] < 807),(df_haul_by_distance['DISTANCE'] >= 807)&(df_haul_by_distance['DISTANCE'] <= 2765),(df_haul_by_distance['DISTANCE'] > 2765)]
 values = ['short haul','mid haul','long haul']
-
 df_haul_by_distance['HAUL_TYP'] = np.select(conditions,values)
-
-# print(df_haul_by_distance['HAUL_TYP'].unique())
-# print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP']== 'short haul']['HAUL_TYP'])
 
 df_haul_by_distance = df_haul_by_distance.sort_values(by ='HAUL_TYP', ascending=True)
 
+#df for stacked barchart to show the airlines as well
 df_haul_flights_grouped = df_haul_by_distance.groupby(['AIRLINE', 'HAUL_TYP'])['HAUL_TYP'].count()
-#print(df_haul_flights_grouped)
 df_haul_flights_grouped = df_haul_flights_grouped.unstack()
 df_haul_flights_grouped = df_haul_flights_grouped.iloc[::-1]
 
+#df for a closer look at long haul flights
 df_long_haul= df_haul_flights_grouped.dropna()
 df_long_haul= df_long_haul['long haul'].astype('int64').reset_index(name= 'long haul')
 df_long_haul['HAUL_TYP']= 'long haul'
 df_long_haul= pd.merge(df_long_haul, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
 df_long_haul.drop('IATA_CODE', axis= 'columns', inplace=True)
-print(df_long_haul)
 
+#this is after getting the long haul df to not mess with the code below
 df_haul_flights_grouped= pd.merge(df_haul_flights_grouped, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
-print(df_haul_flights_grouped)
-
-# print(df_haul_flights_grouped.index)
 
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
 
-
-
-
-#print(df_long_haul)
-#print(df_haul_by_distance_airline)
-#print(df_haul_flights_grouped)
-# print(df_haul_by_distance_airline['HAUL_TYP'].unique())
-
-# print(df_haul_by_distance['HAUL_TYP'].count())
-# print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count())
-
+#----------hovertemplates--------------------------------------------------------------------------------------------------------
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
-hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much
+hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much but hoverinfo= None didn't work, so had to get a bit creative
 
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
-#---------making the figure------------
-fig = go.Figure()
-bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
-             y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
-             name = 'all flights', marker= dict(color= '#6f78a5'), text= array_count,
-             textposition='auto', hovertemplate= hovertemplate_all_flights)            
-fig.add_trace(bar)
 
-
-for i in range(len(df_haul_flights_grouped)):
-    bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
-                          y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
-                           hovertemplate=hovertemplate ,visible= False)
-    fig.add_trace(bar_short)
-#print(df_haul_by_distance_airline)
-
-for i in range(len(df_long_haul)):
-    bar_long= go.Bar(x= [df_long_haul.iloc[i]['HAUL_TYP']] ,y= [df_long_haul.iloc[i]['long haul']],
-                  name= df_long_haul.iloc[i]['AIRLINE'] ,marker= dict(color= colours_long_haul[i], line= dict(color= 'white', width= 1)),
-                   customdata= [df_long_haul.iloc[i]['AIRLINE_FULL_NAME']],hovertemplate=hovertemplate, visible= False)
-    fig.add_trace(bar_long)
-
-
-#x= df_long_haul[df_long_haul['HAUL_TYP']=='long haul']['HAUL_TYP'].unique() ,
-#marker= dict(line= dict(color = 'black', width= 3)),
 #------------array for the visibility of the different graphs--------------------
 all_flight_show= []
 airlines_show=[]
@@ -114,11 +74,32 @@ for visible in range(21):
         all_flight_show.append(False)
         airlines_show.append(True)
         long_show.append(False)
-#---------------------------------------------------------------------------------
 
+#----------making the figure-----------------------------------------------------------------------------------------------------
+fig = go.Figure()
 
+#1st bar chart (is working)
+bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
+             y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
+             name = 'all flights', marker= dict(color= '#6f78a5'), text= array_count,
+             textposition='auto', hovertemplate= hovertemplate_all_flights)            
+fig.add_trace(bar)
 
-#fig.update_traces(hoverinfo= 'text + y')
+#2nd bar chart (hover not working)
+for i in range(len(df_haul_flights_grouped)):
+    bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
+                          y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
+                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
+                           hovertemplate=hovertemplate ,visible= False)
+    fig.add_trace(bar_short)
+
+#3rd bar chart working
+for i in range(len(df_long_haul)):
+    bar_long= go.Bar(x= [df_long_haul.iloc[i]['HAUL_TYP']] ,y= [df_long_haul.iloc[i]['long haul']],
+                  name= df_long_haul.iloc[i]['AIRLINE'] ,marker= dict(color= colours_long_haul[i], line= dict(color= 'white', width= 1)),
+                   customdata= [df_long_haul.iloc[i]['AIRLINE_FULL_NAME']],hovertemplate=hovertemplate, visible= False)
+    fig.add_trace(bar_long)
+
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
                 #   title_xanchor = 'center', title_yanchor = 'top',
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
