@@ -26,8 +26,8 @@ for i in range(len(df_linechart)):
 df_linechart['DEPARTURE_HOUR'] = substring_departure
 df_linechart['DEPARTURE_HOUR'] = df_linechart['DEPARTURE_HOUR'].apply(lambda x :'{}{}'.format(x, ':00'))
 df_linechart['DEPARTURE_HOUR'] = df_linechart['DEPARTURE_HOUR'].str.replace('1 ', '')
-
 df_linechart_departure =  df_linechart.groupby('DEPARTURE_HOUR')['FLIGHT_NUMBER'].count().reset_index(name= 'COUNT')
+df_linechart_departure['DEPARTURE_TEXT']= 'Departures'
 
 #getting a substring to add as a new column
 substring_arrival= []
@@ -39,6 +39,8 @@ df_linechart['ARRIVAL_HOUR'] = df_linechart['ARRIVAL_HOUR'].apply(lambda x :'{}{
 df_linechart_arrival = df_linechart.groupby('ARRIVAL_HOUR')['FLIGHT_NUMBER'].count().reset_index(name= 'COUNT')
 df_linechart_arrival['ARRIVAL_HOUR'] = df_linechart_arrival['ARRIVAL_HOUR'].str.replace('1 ', '')
 df_linechart_arrival['ARRIVAL_HOUR'] = df_linechart_arrival['ARRIVAL_HOUR'].str.replace('2 ', '2 Jan ')
+df_linechart_arrival['ARIVAL_TEXT']= 'Arrivals'
+print(df_linechart_arrival)
 
 #-------hovertemplate---------------------------------------
 
@@ -52,11 +54,11 @@ fig= go.Figure()
 
 linechart_departure = go.Scatter(x= df_linechart_departure['DEPARTURE_HOUR'], y= df_linechart_departure['COUNT'],
                               mode= 'lines+markers', line= dict(color= '#6f78a5', dash= 'dot', width=3), name= 'Departures', marker_size= 7,
-                                text= 'Departures', hovertemplate=hovertemplate)
+                                text= df_linechart_departure['DEPARTURE_TEXT'], hovertemplate=hovertemplate)
 
 linechart_arrival = go.Scatter(x= df_linechart_arrival['ARRIVAL_HOUR'], y= df_linechart_arrival['COUNT'],
                                mode= 'lines+markers', line= dict(color= '#7eb774', dash= 'dot', width= 3), name= 'Arrivals', marker_size= 7,
-                               text= 'Arrivals', hovertemplate= hovertemplate)
+                               text= df_linechart_arrival['ARIVAL_TEXT'], hovertemplate= hovertemplate)
 
 fig.add_trace(linechart_departure)
 fig.add_trace(linechart_arrival)
