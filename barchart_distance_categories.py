@@ -5,9 +5,11 @@ from plotly.subplots import make_subplots
 
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
 df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airlines.csv', sep= ',')
-#------falls zeit ist noch total number of short,   flights hinschreiben und die ändert sich beim abwählen
+
 colours = ['#f5c5cb', '#f5c7a9', '#e2f0cb', '#f7e5ad', '#ff9aa2', '#d8f7ad', 
           '#aadef7', '#a3a8f0', '#a4b8ac', '#f09ec8', '#d3a8f0', '#55cbcd','#c9f7e0', '#c9d2f7']
+
+colours_long_haul= ['#e2f0cb','#f7e5ad','#a3a8f0','#d3a8f0','#c9f7e0','#c9d2f7']
 #bar chart showing overall flights categorized by short, medium and long haul 
 # and seperated by colour for each airline which is visible with a hover 
 
@@ -23,6 +25,7 @@ df_airline_names.rename(columns={'AIRLINE' : 'AIRLINE_FULL_NAME'}, inplace=True)
 
 df_haul_by_distance = df[['DISTANCE','AIRLINE']]
 df_haul_by_distance = pd.merge(df_haul_by_distance, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
+print(df_haul_by_distance)
 
 conditions=[(df_haul_by_distance['DISTANCE'] < 807),(df_haul_by_distance['DISTANCE'] >= 807)&(df_haul_by_distance['DISTANCE'] <= 2765),(df_haul_by_distance['DISTANCE'] > 2765)]
 values = ['short haul','mid haul','long haul']
@@ -35,18 +38,37 @@ df_haul_by_distance['HAUL_TYP'] = np.select(conditions,values)
 df_haul_by_distance = df_haul_by_distance.sort_values(by ='HAUL_TYP', ascending=True)
 
 df_haul_flights_grouped = df_haul_by_distance.groupby(['AIRLINE', 'HAUL_TYP'])['HAUL_TYP'].count()
+#print(df_haul_flights_grouped)
 df_haul_flights_grouped = df_haul_flights_grouped.unstack()
 df_haul_flights_grouped = df_haul_flights_grouped.iloc[::-1]
+
+df_long_haul= df_haul_flights_grouped.dropna()
+df_long_haul= df_long_haul['long haul'].astype('int64').reset_index(name= 'long haul')
+df_long_haul['HAUL_TYP']= 'long haul'
+df_long_haul= pd.merge(df_long_haul, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
+df_long_haul.drop('IATA_CODE', axis= 'columns', inplace=True)
+print(df_long_haul)
+
+df_haul_flights_grouped= pd.merge(df_haul_flights_grouped, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
+print(df_haul_flights_grouped)
+
 # print(df_haul_flights_grouped.index)
 
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
 
-print(df_haul_flights_grouped)
+
+
+
+#print(df_long_haul)
 #print(df_haul_by_distance_airline)
+#print(df_haul_flights_grouped)
 # print(df_haul_by_distance_airline['HAUL_TYP'].unique())
 
 # print(df_haul_by_distance['HAUL_TYP'].count())
 # print(df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count())
+
+hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
+hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much
 
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
 #---------making the figure------------
@@ -54,39 +76,47 @@ fig = go.Figure()
 bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
              y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
              name = 'all flights', marker= dict(color= '#6f78a5'), text= array_count,
-             textposition='auto')            
+             textposition='auto', hovertemplate= hovertemplate_all_flights)            
 fig.add_trace(bar)
 
 
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.index[i], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)), hovertext=df_haul_flights_grouped.index[i] ,visible= False)
+                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
+                           hovertemplate=hovertemplate ,visible= False)
     fig.add_trace(bar_short)
+#print(df_haul_by_distance_airline)
 
-long_haul_pie = go.Pie(labels= df_haul_flights_grouped.index , values= df_haul_flights_grouped['long haul'],hole=0.5, textinfo= 'value', visible=False,
-                       )
-fig.add_trace(long_haul_pie)
-    
+for i in range(len(df_long_haul)):
+    bar_long= go.Bar(x= [df_long_haul.iloc[i]['HAUL_TYP']] ,y= [df_long_haul.iloc[i]['long haul']],
+                  name= df_long_haul.iloc[i]['AIRLINE'] ,marker= dict(color= colours_long_haul[i], line= dict(color= 'white', width= 1)),
+                   customdata= [df_long_haul.iloc[i]['AIRLINE_FULL_NAME']],hovertemplate=hovertemplate, visible= False)
+    fig.add_trace(bar_long)
+
+
+#x= df_long_haul[df_long_haul['HAUL_TYP']=='long haul']['HAUL_TYP'].unique() ,
 #marker= dict(line= dict(color = 'black', width= 3)),
 #------------array for the visibility of the different graphs--------------------
 all_flight_show= []
 airlines_show=[]
-pie_show=[]
-for visible in range(16):
+long_show=[]
+for visible in range(21):
     if visible == 0:
         all_flight_show.append(True)
         airlines_show.append(False)
-        pie_show.append(False)
-    elif visible == 15:
+        long_show.append(False)
+    elif visible >= 15:
         all_flight_show.append(False)
         airlines_show.append(False)
-        pie_show.append(True)
+        long_show.append(True)
     else :
         all_flight_show.append(False)
         airlines_show.append(True)
-        pie_show.append(False)
+        long_show.append(False)
 #---------------------------------------------------------------------------------
+
+
 
 #fig.update_traces(hoverinfo= 'text + y')
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
@@ -98,11 +128,13 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                       dict(active= 0, buttons = list([
                           dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
                           dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}]),
-                          dict(label= 'Pie chart for long haul flights', method= 'update', args= [{'visible': pie_show}, {'title': 'Pie chart'}]),
-                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.05
+                          dict(label= 'Long haul and airlines', method= 'update', args= [{'visible': long_show}, {'title': 'Closer look at the long haul flights'}]),
+                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.06
                       )
                   ])
 fig.show()
+
+
 
 
 
