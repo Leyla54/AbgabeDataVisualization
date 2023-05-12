@@ -13,7 +13,7 @@ colours_long_haul= ['#e2f0cb','#f7e5ad','#a3a8f0','#d3a8f0','#c9f7e0','#c9d2f7']
 
 
 #----------bar chart showing overall flights categorized by short, medium and long haul----------------------------------
-#----------and seperated by colour for each airline which is visible with a hover (thats not working properly atm)-------
+#----------and seperated by colour for each airline which is visible with a hover----------------------------------------
 
 #short haul: less than 807 (average of 1,100-1,500 km)
 #mid haul: 807 - 2765
@@ -51,25 +51,12 @@ df_haul_flights_grouped= pd.merge(df_haul_flights_grouped, df_airline_names, lef
 
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
 
-print(df_haul_flights_grouped)
-
 #----------hovertemplates--------------------------------------------------------------------------------------------------------
+
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much but hoverinfo= None didn't work, so had to get a bit creative
-#hover= '<b>%{name}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
-array_long_haul=['American Airlines Inc.', 'Alaska Airlines Inc.', 'Delta Air Lines Inc.', 'Hawaiian Airlines Inc.', 'United Air Lines Inc.', 'US Airways Inc.']
-
-# for times in range(2):
-#     for i in range(len(df_haul_flights_grouped['AIRLINE_FULL_NAME'])):
-#         array_long_haul.append(df_haul_flights_grouped['AIRLINE_FULL_NAME'][i])
-#     times+=1    
-
-
-print(array_long_haul) 
-print(df_airline_names)   
-
 
 #------------array for the visibility of the different graphs--------------------
 all_flight_show= []
@@ -92,7 +79,7 @@ for visible in range(21):
 #----------making the figure-----------------------------------------------------------------------------------------------------
 fig = go.Figure()
 
-#1st bar chart (is working)
+#1st bar chart
 bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(), 
              y = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()],
              name = 'all flights', marker= dict(color= '#6f78a5'), text= array_count,
@@ -100,7 +87,7 @@ bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(),
 fig.add_trace(bar)
 
 
-#2nd bar chart (hover not working)
+#2nd bar chart
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
@@ -109,7 +96,7 @@ for i in range(len(df_haul_flights_grouped)):
 
 
 
-#3rd bar chart working
+#3rd bar chart
 for i in range(len(df_long_haul)):
     bar_long= go.Bar(x= [df_long_haul.iloc[i]['HAUL_TYP']] ,y= [df_long_haul.iloc[i]['long haul']],
                   name= df_long_haul.iloc[i]['AIRLINE'] ,marker= dict(color= colours_long_haul[i], line= dict(color= 'white', width= 1)),
@@ -117,7 +104,6 @@ for i in range(len(df_long_haul)):
     fig.add_trace(bar_long)
 
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
-                #   title_xanchor = 'center', title_yanchor = 'top',
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
                   xaxis_title= 'Haul Typ', yaxis_title= 'Number of Flights', xaxis_title_font_family= 'Arial Black', yaxis_title_font_family= 'Arial Black',
                   legend_title_text = 'Airlines', coloraxis= dict(colorbar= dict(title= 'Legend Title')), waterfallgroupgap= 1, 
