@@ -56,9 +56,20 @@ print(df_haul_flights_grouped)
 #----------hovertemplates--------------------------------------------------------------------------------------------------------
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much but hoverinfo= None didn't work, so had to get a bit creative
-hover= '<b>%{name}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
+#hover= '<b>%{name}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
+array_long_haul=['American Airlines Inc.', 'Alaska Airlines Inc.', 'Delta Air Lines Inc.', 'Hawaiian Airlines Inc.', 'United Air Lines Inc.', 'US Airways Inc.']
+
+# for times in range(2):
+#     for i in range(len(df_haul_flights_grouped['AIRLINE_FULL_NAME'])):
+#         array_long_haul.append(df_haul_flights_grouped['AIRLINE_FULL_NAME'][i])
+#     times+=1    
+
+
+print(array_long_haul) 
+print(df_airline_names)   
+
 
 #------------array for the visibility of the different graphs--------------------
 all_flight_show= []
@@ -93,9 +104,10 @@ fig.add_trace(bar)
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['IATA_CODE']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
-                           hovertemplate=hover ,visible= False)
+                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata = [df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME'] ,df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME'],df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME']], hovertemplate=hovertemplate, marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),visible= False)
     fig.add_trace(bar_short)
+
+
 
 #3rd bar chart working
 for i in range(len(df_long_haul)):
@@ -119,8 +131,7 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                   ])
 fig.show()
 
-print(df_haul_flights_grouped.index)
-print(df_long_haul.index)
+
 
 
 
