@@ -56,20 +56,21 @@ for hour in hours:
 #array of dataframes
         
 
-#print(substring_hour_delay)
+#hovertemplate
+hovertemplate= '<b>Min:</b> %{min}'+ '<br><b>Q1:</b> %{q1}<br>' + '<b>Median:</b> %{y}' + '<br><b>Q3:</b> %{q3}<br>' + '<b>Max:</b> %{max}'
 
 data = []
 frame_test= []
 fig = go.Figure()
-boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am', marker_color= '#228B22')
+boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am', marker_color= '#ed7b84', hovertemplate=hovertemplate)
 for i in range(len(hour_groups)):
-    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i], marker_color= '#228B22' ))))
+    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i], marker_color= '#ed7b84' ))))
 
 fig.add_trace(boxplot_3)
 fig.frames = frame_test
 fig.update_layout(title= 'Average delay of all flights at arrival per hour',title_font_size= 25, title_font_family= 'Arial Black',
                   xaxis_title= 'Average delay in min', xaxis_title_font_family= 'Arial Black',
-                  xaxis_range= [-50, 100], title_x = 0.5,
+                  xaxis_range= [-70, 100], title_x = 0.5, yaxis_title= 'Time of day', yaxis_title_font_family= 'Arial Black',
     updatemenus=[dict(
             type='buttons',
             buttons=[dict(label= 'Play',

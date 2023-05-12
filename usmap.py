@@ -89,7 +89,7 @@ usmap_arrival= go.Choroplethmapbox(geojson=geo_data,
                                      #visible=False,
                                      colorscale = [[0, '#228B22'], [0.23, '#FFFFFF'], [0.75, '#FF0000'], [1, '#750000']],
                                      colorbar= dict(title= 'delay in min', titleside= 'top',
-                                     ), text= None)
+                                     ), text= None, visible= False)
 
 scattermap_departures= go.Scattermapbox(lat= df_size_departure['LATITUDE'],
                                         lon= df_size_departure['LONGITUDE'],
