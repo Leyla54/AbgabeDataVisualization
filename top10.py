@@ -29,13 +29,6 @@ df_top_airports_arrival= df.groupby('DESTINATION_AIRPORT').count().sort_values(b
 df_top_airports_arrival= df_top_airports_arrival.nlargest(10,'AIRLINE')
 #print(df_top_airports_arrival)
 
-#top 10 connections by distance (dumbells or map)
-# def sorting(x): x.sort_values(by= 'DISTANCE', ascending=False)
-
-# df_top_distance= df.groupby('DISTANCE').apply(sorting(df))
-# print(df_top_distance)
-
-
 #top 10 airports by highest arrival/departuer delay
 df_top_airports_delay_departure= df.groupby('ORIGIN_AIRPORT').max().sort_values(by= 'DEPARTURE_DELAY', ascending=False)
 print(df_top_airports_delay_departure)
