@@ -6,14 +6,8 @@ from datetime import datetime
 
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
 
-'''
-    add Slider with hours(doesnt fucking work)
-    make scale
-    what to do with outliers
-    looks
-    hover'''
-
-#boxplot with average delay per hour
+#-------------boxplot with average delay per hour-----------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------
 #frames with for loop
 
 df_boxplot_destination = df[['SCHEDULED_DESTINATION', 'DESTINATION_DELAY' ]]
@@ -57,17 +51,24 @@ for hour in hours:
         
 
 #hovertemplate
-hovertemplate= '<b>Min:</b> %{min}'+ '<br><b>Q1:</b> %{q1}<br>' + '<b>Median:</b> %{y}' + '<br><b>Q3:</b> %{q3}<br>' + '<b>Max:</b> %{max}'
+hovertemplate= '<b>Min:</b> %{min}'+ '<br><b>Q1:</b> %{q1}<br>' + '<b>Median:</b> %{y}' + '<br><b>Q3:</b> %{q3}<br>' + '<b>Max:</b> %{max}<extra></extra>'
+texttemplate= '<b>Min:</b> %{min}'+ '<br><b>Q1:</b> %{lower}<br>' + '<b>Median:</b> %{y}' + '<br><b>Q3:</b> %{upper}<br>' + '<b>Max:</b> %{max}<extra></extra>'
 
 data = []
 frame_test= []
 fig = go.Figure()
-boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am', marker_color= '#ed7b84', hovertemplate=hovertemplate)
+boxplot_3= go.Box(x= hour_groups[0]['DESTINATION_DELAY'], name= '03 am', marker_color= '#ed7b84')
 for i in range(len(hour_groups)):
-    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i], marker_color= '#ed7b84' ))))
+    frame_test.append(go.Frame(data = (go.Box(x= hour_groups[i]['DESTINATION_DELAY'], name= time[i], marker_color= '#ed7b84'))))
+
+
 
 fig.add_trace(boxplot_3)
 fig.frames = frame_test
+
+for frame in fig.frames:
+    frame.data[0].hovertemplate=hovertemplate
+
 fig.update_layout(title= 'Average delay of all flights at arrival per hour',title_font_size= 25, title_font_family= 'Arial Black',
                   xaxis_title= 'Average delay in min', xaxis_title_font_family= 'Arial Black',
                   xaxis_range= [-70, 100], title_x = 0.5, yaxis_title= 'Time of day', yaxis_title_font_family= 'Arial Black',
@@ -80,17 +81,22 @@ fig.update_layout(title= 'Average delay of all flights at arrival per hour',titl
                          method= 'animate',
                          args= [None, dict(frame= dict(duration= 0, redraw= False), mode= 'immediate')])
                     ])],
-    sliders= [dict(active = 0, yanchor= 'bottom', xanchor= 'left', currentvalue= dict(font= dict(size= 10), prefix=
-                                                                                      'text-before-value-on-display', visible= True,
-                                                                                      xanchor= 'right'),
-                                                                                      transition= dict(duration= 700, easing= 'cubic-in-out'),
-                                                                                      pad= dict(b= 20, t= 70), len= 0.9, x= 0.1, y = 0,
-                                                                                      steps= [dict(method= 'animate', label=
-                                                                                                   'label-for-frame', value= 'value-for-frame(defaults to label)', args= [dict(frame= dict(duration= 700, redraw= False),
-                                                                                                          mode= 'immediate')]) ])]
+    
                     
                     )
+fig.update_traces(hovertemplate=texttemplate)
 fig.show()
+
+
+
+# sliders= [dict(active = 0, yanchor= 'bottom', xanchor= 'left', currentvalue= dict(font= dict(size= 10), prefix=
+#                                                                                       'text-before-value-on-display', visible= True,
+#                                                                                       xanchor= 'right'),
+#                                                                                       transition= dict(duration= 700, easing= 'cubic-in-out'),
+#                                                                                       pad= dict(b= 20, t= 70), len= 0.9, x= 0.1, y = 0,
+#                                                                                       steps= [dict(method= 'animate', label=
+#                                                                                                    'label-for-frame', value= 'value-for-frame(defaults to label)', args= [dict(frame= dict(duration= 700, redraw= False),
+#                                                                                                           mode= 'immediate')]) ])]
 
 
 
