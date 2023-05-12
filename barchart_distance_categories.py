@@ -51,9 +51,12 @@ df_haul_flights_grouped= pd.merge(df_haul_flights_grouped, df_airline_names, lef
 
 df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'HAUL_TYP'])
 
+print(df_haul_flights_grouped)
+
 #----------hovertemplates--------------------------------------------------------------------------------------------------------
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much but hoverinfo= None didn't work, so had to get a bit creative
+hover= '<b>%{name}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
 
@@ -85,12 +88,13 @@ bar = go.Bar(x = df_haul_by_distance['HAUL_TYP'].unique(),
              textposition='auto', hovertemplate= hovertemplate_all_flights)            
 fig.add_trace(bar)
 
+
 #2nd bar chart (hover not working)
 for i in range(len(df_haul_flights_grouped)):
     bar_short = go.Bar(x = df_haul_by_distance_airline['HAUL_TYP'].unique(),
                           y= df_haul_flights_grouped.loc[df_haul_flights_grouped.index[i]],
-                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['AIRLINE_FULL_NAME']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
-                           hovertemplate=hovertemplate ,visible= False)
+                          name = df_haul_flights_grouped.iloc[i]['IATA_CODE'], customdata= [df_haul_flights_grouped.iloc[i]['IATA_CODE']], marker= dict(color= colours[i], line= dict(color= 'white', width= 1)),
+                           hovertemplate=hover ,visible= False)
     fig.add_trace(bar_short)
 
 #3rd bar chart working
@@ -110,10 +114,16 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                           dict(label= 'Just haul typ', method= 'update', args= [{'visible': all_flight_show}, {'title': 'Flights categorized by their distance'}]),
                           dict(label= 'Haul typ and airline', method= 'update', args= [{'visible': airlines_show}, {'title': 'Flights categorized by their distance and airline'}]),
                           dict(label= 'Long haul and airlines', method= 'update', args= [{'visible': long_show}, {'title': 'Closer look at the long haul flights'}]),
-                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.06
+                          ]), direction= 'down', showactive= True ,xanchor= 'right', yanchor= 'top', x=1, y= 1.05
                       )
                   ])
 fig.show()
+
+print(df_haul_flights_grouped.index)
+print(df_long_haul.index)
+
+
+
 
 
 
