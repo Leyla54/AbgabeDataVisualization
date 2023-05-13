@@ -78,7 +78,3 @@ fig1.update_layout(showlegend= False,title= 'Top 10 airports by flight count', t
 fig1.update_annotations(font = dict(family= 'Arial Black'))
 
 fig1.show()
-
-plot_bgcolor
-piecolorway
-paper_bgcolor
