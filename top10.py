@@ -9,9 +9,11 @@ df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd
 df_airports= pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airports.csv', sep= ',')
 df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airlines.csv', sep= ',')
 
-print(df_airline_names)
-print(df)
+url_united_states= 'https://raw.githubusercontent.com/mapbox/mapboxgl-jupyter/master/examples/data/us-states.geojson'
+token= 'pk.eyJ1IjoibGV5bGExMyIsImEiOiJjbGZtbHV3bGMwY21yNDNtbXJhdmFwaTE2In0.HEUGOzuyzJbiE0oz4RrwEQ'
 
+
+df_airports= df_airports[['IATA_CODE', 'AIRPORT', 'CITY']]
 df = df[['AIRLINE', 'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 'DEPARTURE_DELAY', 'DESTINATION_DELAY', 'DISTANCE']]
 
 #top 10 airlines by flight count
@@ -19,31 +21,19 @@ df_top_airlines= df.groupby('AIRLINE').count().sort_values(by= 'ORIGIN_AIRPORT',
 df_top_airlines=df_top_airlines.nlargest(10, 'ORIGIN_AIRPORT')
 #print(df_top_airlines)
 
-#top 10 departure airports by flight count 
+#top 10 departure airports by flight count bar chart
 df_top_airports_departure= df.groupby('ORIGIN_AIRPORT').count().sort_values(by= 'AIRLINE', ascending=False)
 df_top_airports_departure= df_top_airports_departure.nlargest(10,'AIRLINE')
-#print(df_top_airports_departure)
+df_top_airports_departure= pd.merge(df_top_airports_departure, df_airports, left_on='ORIGIN_AIRPORT', right_on='IATA_CODE')
+print(df_top_airports_departure)
 
-#top 10 arrival airports by flight count
+#top 10 arrival airports by flight count bar chart
 df_top_airports_arrival= df.groupby('DESTINATION_AIRPORT').count().sort_values(by= 'AIRLINE', ascending=False)
 df_top_airports_arrival= df_top_airports_arrival.nlargest(10,'AIRLINE')
-#print(df_top_airports_arrival)
-
-#top 10 airports by highest arrival/departuer delay
-df_top_airports_delay_departure= df.groupby('ORIGIN_AIRPORT').max().sort_values(by= 'DEPARTURE_DELAY', ascending=False)
-print(df_top_airports_delay_departure)
-df_top_airports_delay_departure= df_top_airports_delay_departure.nlargest(10, 'DEPARTURE_DELAY')
-#print(df_top_airports_delay_departure)
+df_top_airports_arrival= pd.merge(df_top_airports_arrival, df_airports, left_on='DESTINATION_AIRPORT', right_on='IATA_CODE')
+print(df_top_airports_arrival)
 
 
-df_top_airports_delay_arrival= df.groupby('DESTINATION_AIRPORT').max().sort_values(by= 'DESTINATION_DELAY', ascending=False)
-df_top_airports_delay_arrival= df_top_airports_delay_arrival.nlargest(10, 'DESTINATION_DELAY')
-#print(df_top_airports_delay_arrival)
-
-
-#top 10 airlines average delay at origin & destination
-df_top_airline_delays= df.groupby(['AIRLINE', 'DEPARTURE_DELAY'])['DEPARTURE_DELAY'].mean()
-#print(df_top_airline_delays.unstack())
 colours_airport= ['#6f78a5', ]*10
 colours_airport[5]= '#7eb774'
 colours_airport[7]= '#ed7b84'
@@ -52,6 +42,8 @@ colours_airport_arr= ['#6f78a5', ]*10
 colours_airport_arr[5]= '#ed7b84'
 colours_airport_arr[7]= '#7eb774'
 
+hovertemplate= '<b>%{customdata}</b>' + '<br>in %{hovertext}' + '<br>Number of flights: %{x}<extra></extra>'
+
 fig= go.Figure()
 
 airlines_barchart= go.Bar(x= df_top_airlines.index, y= df_top_airlines['ORIGIN_AIRPORT'])
@@ -59,19 +51,30 @@ airlines_barchart= go.Bar(x= df_top_airlines.index, y= df_top_airlines['ORIGIN_A
 fig.add_trace(airlines_barchart)
 #fig.show()
 
-fig1= make_subplots(rows= 2, cols=2, subplot_titles=('Number of departure flights', 'Arrival flight count', 'Highest departure airport delay', 'Highest arrival airport delay'),
+
+fig1= make_subplots(rows= 1, cols=2, specs=[[{'type': 'bar'},{'type': 'bar'}]],subplot_titles=('Departure flight count', 'Arrival flight count'),
                     )
-departure_airport= go.Bar(y= df_top_airports_departure.index, x= df_top_airports_departure['AIRLINE'], marker_color= colours_airport, orientation= 'h' )
-arrival_airports= go.Bar(y= df_top_airports_arrival.index, x= df_top_airports_arrival['AIRLINE'], marker_color= colours_airport_arr, orientation= 'h')
+departure_airport= go.Bar(x= df_top_airports_departure['AIRLINE'],y= df_top_airports_departure['IATA_CODE'],  marker_color= colours_airport, orientation= 'h' , customdata=df_top_airports_departure['AIRPORT'],
+                          hovertext= df_top_airports_departure['CITY'] ,hovertemplate=hovertemplate)
+arrival_airports= go.Bar(x= df_top_airports_arrival['AIRLINE'],y= df_top_airports_arrival['IATA_CODE'],  marker_color= colours_airport_arr, orientation= 'h', customdata=df_top_airports_arrival['AIRPORT'],
+                         hovertext= df_top_airports_arrival['CITY'],hovertemplate=hovertemplate)
 fig1.add_trace(departure_airport, row= 1, col=1)
 fig1.add_trace(arrival_airports, row= 1, col=2)
 
-delay_departure_airports= go.Bar(x= df_top_airports_delay_departure.index, y= df_top_airports_delay_departure['DEPARTURE_DELAY'])
-delay_arrival_airports= go.Bar(x= df_top_airports_delay_arrival.index, y= df_top_airports_delay_arrival['DESTINATION_DELAY'])
-fig1.add_trace(delay_departure_airports, row=2, col=1)
-fig1.add_trace(delay_arrival_airports, row=2, col=2)
+departure_airport_vertical= go.Bar(x= df_top_airports_departure['IATA_CODE'], y= df_top_airports_departure['AIRLINE'], marker_color= colours_airport,orientation='v', visible=False)
+arrival_airports_vertical= go.Bar(x= df_top_airports_arrival['IATA_CODE'], y= df_top_airports_arrival['AIRLINE'], marker_color= colours_airport_arr,orientation='v', visible= False)
 
-fig1.update_layout(showlegend= False, yaxis= dict(autorange= 'reversed'), yaxis2= dict(autorange= 'reversed'))
+fig1.add_trace(departure_airport_vertical, row=1, col= 1)
+fig1.add_trace(arrival_airports_vertical, row= 1, col=2)
+
+fig1.update_layout(showlegend= False,title= 'Top 10 airports by flight count', title_font_size= 25, title_font_family= 'Arial black',title_x=0.5, yaxis= dict(autorange= 'reversed'), yaxis2= dict(autorange= 'reversed'),
+                   updatemenus= [
+                      dict(active= 0, buttons = list([
+                          dict(label= 'Horizontal bar chart', method= 'update', args= [{'visible': [True, True,False, False]}]),
+                          dict(label= 'Vertical bar chart', method= 'update', args= [{'visible': [False, False, True, True]}])
+                          ]), direction= 'down',pad={"r": 10, "t": 10}, showactive= True,x=0, xanchor= 'left', yanchor= 'bottom'
+                          )]
+                      )
 fig1.update_annotations(font = dict(family= 'Arial Black'))
 
 fig1.show()
