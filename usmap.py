@@ -34,24 +34,26 @@ df_map.drop('DESTINATION_IATA_CODE', axis='columns', inplace=True)
 df_map.drop( 'POSTAL_DESTINATION', axis='columns', inplace=True)
 
 
-
-
-df_map.to_csv('bin/Abgabe/test.csv')
-
 df_map_states_departure = df_map.groupby('ORIGIN_STATE_FULL_NAME').mean()
 df_map_states_arrival= df_map.groupby('DESTINATION_STATE_FULL_NAME').mean()
+
 
 df_count_departure= df_map.groupby('ORIGIN_AIRPORT').count()
 df_size_departure= df_map.groupby('ORIGIN_AIRPORT')['FLIGHT_NUMBER'].count().reset_index(name= 'flights')
 
 df_size_departure= pd.merge(df_size_departure, df_positions, left_on='ORIGIN_AIRPORT', right_on='IATA_CODE')
+df_size_departure= pd.merge(df_size_departure, df_airports_1, left_on= 'IATA_CODE', right_on='DESTINATION_IATA_CODE')
 df_size_departure.drop('IATA_CODE', axis='columns', inplace=True)
-
+df_size_departure.drop('DESTINATION_STATE', axis='columns', inplace=True)
+df_size_departure.drop('DESTINATION_IATA_CODE', axis='columns', inplace=True)
 
 df_count_arrival= df_map.groupby('DESTINATION_AIRPORT').count()
 df_count_arrival= df_map.groupby('DESTINATION_AIRPORT')['FLIGHT_NUMBER'].count().reset_index(name= 'flights')
 df_count_arrival= pd.merge(df_count_arrival, df_positions, left_on='DESTINATION_AIRPORT', right_on='IATA_CODE')
+df_count_arrival= pd.merge(df_count_arrival, df_airports_1, left_on= 'IATA_CODE', right_on='DESTINATION_IATA_CODE')
 df_count_arrival.drop('IATA_CODE', axis= 'columns', inplace=True)
+df_count_arrival.drop('DESTINATION_STATE', axis= 'columns', inplace=True)
+df_count_arrival.drop('DESTINATION_IATA_CODE', axis= 'columns', inplace=True)
 print(df_count_arrival)
 
 df_count_departure.to_csv('bin/Abgabe/dep.csv')
@@ -61,6 +63,10 @@ with urlopen(url_united_states) as response:
 
 for feature in geo_data['features']:
     feature['id'] = feature['properties']['name']
+
+map_hover= '<i>%{text}<extra></extra></i>'
+
+scatter_hover= '%{hovertext} flights at<br> <b>%{text}<extra></extra></b>'
 
 
 fig = go.Figure()
@@ -75,7 +81,7 @@ usmap_departure= go.Choroplethmapbox(geojson=geo_data,
                                      zmid= 0,
                                      zmax= 60,
                                      colorscale = [[0, '#228B22'], [0.15, '#FFFFFF'], [0.75, '#FF0000'], [1, '#750000']],
-                                     colorbar= dict(title= 'delay in min', titleside= 'top'), text= None
+                                     colorbar= dict(title= 'delay in min', titleside= 'top'),text= df_map_states_departure.index,hovertemplate=map_hover
                                     )
 
 usmap_arrival= go.Choroplethmapbox(geojson=geo_data,
@@ -86,39 +92,28 @@ usmap_arrival= go.Choroplethmapbox(geojson=geo_data,
                                      zmin= -20,
                                      zmid= 0,
                                      zmax= 65,
-                                     #visible=False,
                                      colorscale = [[0, '#228B22'], [0.23, '#FFFFFF'], [0.75, '#FF0000'], [1, '#750000']],
                                      colorbar= dict(title= 'delay in min', titleside= 'top',
-                                     ), text= None, visible= False)
+                                     ),text= df_map_states_arrival.index,hovertemplate=map_hover, visible= False)
 
 scattermap_departures= go.Scattermapbox(lat= df_size_departure['LATITUDE'],
                                         lon= df_size_departure['LONGITUDE'],
                                         mode= 'markers',
                                         marker= go.scattermapbox.Marker(size = df_size_departure['flights'],
                                                                         sizemode= 'area',
-                                                                        
-                                                                         color= '#228B22',
-                                                                         opacity=1), text= df_size_departure['ORIGIN_AIRPORT'], showlegend=False
-                                                                         
-                                                                          
-                                                               
-                                                                         
-                                                                         
-                                                                         
+                                                                         color= '#6f78a5',
+                                                                         opacity=0.9), text= df_size_departure['DESTINATION_AIRPORT_FULL_NAME'], showlegend=False,
+                                                                         hovertext=df_size_departure['flights'],hovertemplate= scatter_hover        
                                                                )
 
 scattermap_arrivals= go.Scattermapbox(lat= df_count_arrival['LATITUDE'],
                                       lon= df_count_arrival['LONGITUDE'],
                                       mode= 'markers',
-                                      #visible= False,
                                       marker= go.scattermapbox.Marker(size = df_count_arrival['flights'],
                                                                       sizemode= 'area',
                                                                       color= '#000000',
-                                                                      opacity= 1
-                                                                         
-                                                                         
-                                                               ), showlegend= False
-                                                               )
+                                                                      opacity= 0.9), showlegend= False, text=df_count_arrival['DESTINATION_AIRPORT_FULL_NAME'],
+                                                                      hovertext = df_count_arrival['flights'], hovertemplate=scatter_hover)
 
 
 fig.add_trace(usmap_departure)
@@ -130,16 +125,10 @@ fig.update_layout(mapbox_style='light', mapbox_accesstoken=token, mapbox_zoom=3,
                   title= 'Average delays per state', title_font_size= 25, title_font_family= 'Arial Black', title_x = 0.5,
                   updatemenus= [
                       dict(active= 0, buttons = list([
-                          dict(label= 'Departure delay', method= 'update', args= [{'visible': [True, False,False, False]}, {'title': 'Average departure delay per state'}]),
-                          dict(label= 'Arrival delay', method= 'update', args= [{'visible': [False, True, False, False]}, {'title': 'Average arrival delay per state'}])
-                          ]), direction= 'down',pad={"r": 10, "t": 10}, showactive= True,x=0, xanchor= 'left', yanchor= 'bottom'
-                          ),
-                       dict(active= 0, buttons = list([
-                          dict(label= 'Departures at airports', method= 'update', args= [{'visible': [False, False, True, False]},{'title': 'Number of departures at airports'}]),
-                          dict(label= 'Arrival at airports', method= 'update', args= [{'visible': [False, False, False, True]}, {'title': 'Number of arrivals at airports'}])
-                          ]), direction= 'down',pad={"r": 10, "t": 10}, showactive= True,x=0.13, xanchor= 'left', yanchor= 'bottom'
-                          ) ])
-fig.update_traces(visible = False, selector=dict(visible= True))
+                          dict(label= 'Departure delay & flights', method= 'update', args= [{'visible': [True, False,True, False]}, {'title': 'Average departure delay per state & departure flight count'}]),
+                          dict(label= 'Arrival delay & flights', method= 'update', args= [{'visible': [False, True, False, True]}, {'title': 'Average arrival delay per state & arrival flight count'}])
+                          ]), direction= 'down',pad={"r": 10, "t": 10}, showactive= True ,x=0, xanchor= 'left', yanchor= 'bottom'
+                          )
+                        ])
+
 fig.show()
-                           
-#dict(label= 'All flights at airports', method= 'update', args= [{'title': 'Number of arrivals and departures at airports'}]),
