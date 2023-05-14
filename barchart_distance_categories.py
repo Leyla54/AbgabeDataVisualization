@@ -23,6 +23,7 @@ colours_long_haul= ['#e2f0cb','#f7e5ad','#a3a8f0','#d3a8f0','#c9f7e0','#c9d2f7']
 
 #----------data preparation----------------------------------------------------------------------------------------------
 
+#make the dataframe
 df_airline_names.rename(columns={'AIRLINE' : 'AIRLINE_FULL_NAME'}, inplace=True)
 df_haul_by_distance = df[['DISTANCE','AIRLINE']]
 df_haul_by_distance = pd.merge(df_haul_by_distance, df_airline_names, left_on='AIRLINE', right_on='IATA_CODE')
@@ -53,9 +54,13 @@ df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'H
 
 #----------hovertemplates--------------------------------------------------------------------------------------------------------
 
+#for trace 2 & 3
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
-hovertemplate_all_flights= '<extra></extra>'#not using it bc thats too much but hoverinfo= None didn't work, so had to get a bit creative
 
+#for trace 1
+hovertemplate_all_flights= '<extra></extra>'#hoverinfo= None didn't work, so had to get a bit creative
+
+#numbers on trace 1 bar chart
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
 
 #------------array for the visibility of the different graphs--------------------
@@ -103,6 +108,7 @@ for i in range(len(df_long_haul)):
                    customdata= [df_long_haul.iloc[i]['AIRLINE_FULL_NAME']],hovertemplate=hovertemplate, visible= False)
     fig.add_trace(bar_long)
 
+#layout
 fig.update_layout(barmode = 'stack', title = 'Flights categorized by their distance and airline', title_font_size= 25, title_x=0.5,
                   title_font_family= 'Arial Black', legend_title_font_family = 'Arial Black',
                   xaxis_title= 'Haul Typ', yaxis_title= 'Number of Flights', xaxis_title_font_family= 'Arial Black', yaxis_title_font_family= 'Arial Black',

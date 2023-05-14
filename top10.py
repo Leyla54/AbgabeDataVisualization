@@ -12,7 +12,12 @@ df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/Abgabe
 url_united_states= 'https://raw.githubusercontent.com/mapbox/mapboxgl-jupyter/master/examples/data/us-states.geojson'
 token= 'pk.eyJ1IjoibGV5bGExMyIsImEiOiJjbGZtbHV3bGMwY21yNDNtbXJhdmFwaTE2In0.HEUGOzuyzJbiE0oz4RrwEQ'
 
+#-----------------------top 10 airports by flight count-------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------
 
+#-----------------------data preparation-----------------------------------------------------------------------
+
+#only necessary columns
 df_airports= df_airports[['IATA_CODE', 'AIRPORT', 'CITY']]
 df = df[['AIRLINE', 'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 'DEPARTURE_DELAY', 'DESTINATION_DELAY', 'DISTANCE']]
 
@@ -25,25 +30,29 @@ df_top_airlines=df_top_airlines.nlargest(10, 'ORIGIN_AIRPORT')
 df_top_airports_departure= df.groupby('ORIGIN_AIRPORT').count().sort_values(by= 'AIRLINE', ascending=False)
 df_top_airports_departure= df_top_airports_departure.nlargest(10,'AIRLINE')
 df_top_airports_departure= pd.merge(df_top_airports_departure, df_airports, left_on='ORIGIN_AIRPORT', right_on='IATA_CODE')
-print(df_top_airports_departure)
+
 
 #top 10 arrival airports by flight count bar chart
 df_top_airports_arrival= df.groupby('DESTINATION_AIRPORT').count().sort_values(by= 'AIRLINE', ascending=False)
 df_top_airports_arrival= df_top_airports_arrival.nlargest(10,'AIRLINE')
 df_top_airports_arrival= pd.merge(df_top_airports_arrival, df_airports, left_on='DESTINATION_AIRPORT', right_on='IATA_CODE')
-print(df_top_airports_arrival)
 
 
+#colours for departure
 colours_airport= ['#6f78a5', ]*10
 colours_airport[5]= '#7eb774'
 colours_airport[7]= '#ed7b84'
 
+#colours for arrival
 colours_airport_arr= ['#6f78a5', ]*10
 colours_airport_arr[5]= '#ed7b84'
 colours_airport_arr[7]= '#7eb774'
 
+#----------------------hovertemplate--------------------------------------------------------------------
 hovertemplate= '<b>%{customdata}</b>' + '<br>in %{hovertext}' + '<br>Number of flights: %{x}<extra></extra>'
 
+
+#---------------------making the figure-----------------------------------------------------------------
 fig= go.Figure()
 
 airlines_barchart= go.Bar(x= df_top_airlines.index, y= df_top_airlines['ORIGIN_AIRPORT'])
@@ -51,13 +60,17 @@ airlines_barchart= go.Bar(x= df_top_airlines.index, y= df_top_airlines['ORIGIN_A
 fig.add_trace(airlines_barchart)
 #fig.show()
 
-
+#subplots
 fig1= make_subplots(rows= 1, cols=2, specs=[[{'type': 'bar'},{'type': 'bar'}]],subplot_titles=('Departure flight count', 'Arrival flight count'),
                     )
+
+#subplot departure
 departure_airport= go.Bar(x= df_top_airports_departure['AIRLINE'],y= df_top_airports_departure['IATA_CODE'],  marker_color= colours_airport, orientation= 'h' , customdata=df_top_airports_departure['AIRPORT'],
                           hovertext= df_top_airports_departure['CITY'] ,hovertemplate=hovertemplate)
+#subplot arrival
 arrival_airports= go.Bar(x= df_top_airports_arrival['AIRLINE'],y= df_top_airports_arrival['IATA_CODE'],  marker_color= colours_airport_arr, orientation= 'h', customdata=df_top_airports_arrival['AIRPORT'],
                          hovertext= df_top_airports_arrival['CITY'],hovertemplate=hovertemplate)
+
 fig1.add_trace(departure_airport, row= 1, col=1)
 fig1.add_trace(arrival_airports, row= 1, col=2)
 
@@ -67,6 +80,7 @@ arrival_airports_vertical= go.Bar(x= df_top_airports_arrival['IATA_CODE'], y= df
 fig1.add_trace(departure_airport_vertical, row=1, col= 1)
 fig1.add_trace(arrival_airports_vertical, row= 1, col=2)
 
+#layout
 fig1.update_layout(showlegend= False,title= 'Top 10 airports by flight count', title_font_size= 25, title_font_family= 'Arial black',title_x=0.5, yaxis= dict(autorange= 'reversed'), yaxis2= dict(autorange= 'reversed'),
                    updatemenus= [
                       dict(active= 0, buttons = list([

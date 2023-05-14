@@ -12,34 +12,44 @@ df_state_names= pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDat
 url_united_states= 'https://raw.githubusercontent.com/mapbox/mapboxgl-jupyter/master/examples/data/us-states.geojson'
 token= 'pk.eyJ1IjoibGV5bGExMyIsImEiOiJjbGZtbHV3bGMwY21yNDNtbXJhdmFwaTE2In0.HEUGOzuyzJbiE0oz4RrwEQ'
 
-#------------data preparation-----------------------------------------------------------------------------------------
+#--------------average delay per state and flight count per airport---------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------
 
+#------------data preparation-----------------------------------------------------------------------------------------
+
+#only necessary columns
 df_airports_1= df_airports[['IATA_CODE','AIRPORT','CITY','STATE']]
 df_map= df[['AIRLINE','FLIGHT_NUMBER', 'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 'DEPARTURE_DELAY', 'DESTINATION_DELAY', 'ORIGIN_AIRPORT_LAT', 'ORIGIN_AIRPORT_LON', 'DESTINATION_AIRPORT_LAT', 'DESTINATION_AIRPORT_LON']]
 df_state_names= df_state_names[['State', 'Postal']]
 
+#renaming and new dataframe
 df_state_names.rename(columns={'State': 'ORIGIN_STATE_FULL_NAME'}, inplace=True)
 df_airports_1.rename(columns={'AIRPORT' : 'ORIGIN_AIRPORT_FULL_NAME', 'CITY': 'ORIGIN_CITY', 'STATE': 'ORIGIN_STATE'}, inplace=True)
 df_positions= df_airports[['IATA_CODE', 'LATITUDE', 'LONGITUDE']]
 
+#merge for origin data
 df_map = pd.merge(df_map, df_airports_1, left_on='ORIGIN_AIRPORT', right_on='IATA_CODE')
 df_map = pd.merge(df_map, df_state_names, left_on='ORIGIN_STATE', right_on='Postal')
 
+#renaming so no double names
 df_airports_1.rename(columns={'ORIGIN_AIRPORT_FULL_NAME' : 'DESTINATION_AIRPORT_FULL_NAME', 'ORIGIN_CITY': 'DESTINATION_CITY', 'ORIGIN_STATE': 'DESTINATION_STATE', 'IATA_CODE': 'DESTINATION_IATA_CODE'}, inplace=True)
 df_state_names.rename(columns= {'ORIGIN_STATE_FULL_NAME': 'DESTINATION_STATE_FULL_NAME', 'Postal': 'POSTAL_DESTINATION'}, inplace=True)
 
+#merge for destination data
 df_map = pd.merge(df_map, df_airports_1, left_on='DESTINATION_AIRPORT', right_on='DESTINATION_IATA_CODE')
 df_map = pd.merge(df_map, df_state_names, left_on='DESTINATION_STATE', right_on='POSTAL_DESTINATION')
 
+#slimming df to only essentials
 df_map.drop('IATA_CODE', axis='columns', inplace=True)
 df_map.drop('Postal', axis='columns', inplace=True)
 df_map.drop('DESTINATION_IATA_CODE', axis='columns', inplace=True)
 df_map.drop( 'POSTAL_DESTINATION', axis='columns', inplace=True)
 
+#map dfs
 df_map_states_departure = df_map.groupby('ORIGIN_STATE_FULL_NAME').mean()
 df_map_states_arrival= df_map.groupby('DESTINATION_STATE_FULL_NAME').mean()
 
+#scatter departure df
 df_size_departure= df_map.groupby('ORIGIN_AIRPORT')['FLIGHT_NUMBER'].count().reset_index(name= 'flights')
 
 df_size_departure= pd.merge(df_size_departure, df_positions, left_on='ORIGIN_AIRPORT', right_on='IATA_CODE')
@@ -49,6 +59,7 @@ df_size_departure.drop('IATA_CODE', axis='columns', inplace=True)
 df_size_departure.drop('DESTINATION_STATE', axis='columns', inplace=True)
 df_size_departure.drop('DESTINATION_IATA_CODE', axis='columns', inplace=True)
 
+#scatter arrival df
 df_count_arrival= df_map.groupby('DESTINATION_AIRPORT')['FLIGHT_NUMBER'].count().reset_index(name= 'flights')
 
 df_count_arrival= pd.merge(df_count_arrival, df_positions, left_on='DESTINATION_AIRPORT', right_on='IATA_CODE')
@@ -76,6 +87,7 @@ scatter_hover= '%{hovertext} flights at<br> <b>%{text}<extra></extra></b>'
 #------------------visualization--------------------------------------------------------------------------------------------------
 fig = go.Figure()
 
+#map 1
 usmap_departure= go.Choroplethmapbox(geojson=geo_data,
                                      locations= df_map_states_departure.index,
                                      z= df_map_states_departure.DEPARTURE_DELAY,
@@ -88,6 +100,7 @@ usmap_departure= go.Choroplethmapbox(geojson=geo_data,
                                      colorbar= dict(title= 'delay in min', titleside= 'top'),text= df_map_states_departure.index,hovertemplate=map_hover
                                     )
 
+#map 2
 usmap_arrival= go.Choroplethmapbox(geojson=geo_data,
                                      locations= df_map_states_arrival.index,
                                      z= df_map_states_arrival.DESTINATION_DELAY,
@@ -100,6 +113,7 @@ usmap_arrival= go.Choroplethmapbox(geojson=geo_data,
                                      colorbar= dict(title= 'delay in min', titleside= 'top'
                                      ),text= df_map_states_arrival.index,hovertemplate=map_hover, visible= False)
 
+#scatter 1
 scattermap_departures= go.Scattermapbox(lat= df_size_departure['LATITUDE'],
                                         lon= df_size_departure['LONGITUDE'],
                                         mode= 'markers',
@@ -110,12 +124,13 @@ scattermap_departures= go.Scattermapbox(lat= df_size_departure['LATITUDE'],
                                                                          hovertext=df_size_departure['flights'],hovertemplate= scatter_hover        
                                                                )
 
+#scatter 2
 scattermap_arrivals= go.Scattermapbox(lat= df_count_arrival['LATITUDE'],
                                       lon= df_count_arrival['LONGITUDE'],
                                       mode= 'markers',
                                       marker= go.scattermapbox.Marker(size = df_count_arrival['flights'],
                                                                       sizemode= 'area',
-                                                                      color= '#000000',
+                                                                      color= '#6f78a5',
                                                                       opacity= 0.9), showlegend= False, text=df_count_arrival['DESTINATION_AIRPORT_FULL_NAME'],
                                                                       hovertext = df_count_arrival['flights'], hovertemplate=scatter_hover)
 
@@ -125,6 +140,7 @@ fig.add_trace(usmap_arrival)
 fig.add_trace(scattermap_departures)
 fig.add_trace(scattermap_arrivals)
 
+#layout
 fig.update_layout(mapbox_style='light', mapbox_accesstoken=token, mapbox_zoom=3, mapbox_center= {'lat': 37.522147,'lon': -95.076446}, 
                   title= 'Average delays per state', title_font_size= 25, title_font_family= 'Arial Black', title_x = 0.5,
                   updatemenus= [
