@@ -5,6 +5,8 @@ from urllib.request import urlopen
 import json
 from plotly.subplots import make_subplots
 
+
+
 df = pd.read_csv('https://gist.githubusercontent.com/florianeichin/cfa1705e12ebd75ff4c321427126ccee/raw/c86301a0e5d0c1757d325424b8deec04cc5c5ca9/flights_all_cleaned.csv', sep=',')
 df_airports= pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airports.csv', sep= ',')
 df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/AbgabeDataVisualization/master/airlines.csv', sep= ',')
@@ -12,7 +14,25 @@ df_airline_names = pd.read_csv('https://raw.githubusercontent.com/Leyla54/Abgabe
 url_united_states= 'https://raw.githubusercontent.com/mapbox/mapboxgl-jupyter/master/examples/data/us-states.geojson'
 token= 'pk.eyJ1IjoibGV5bGExMyIsImEiOiJjbGZtbHV3bGMwY21yNDNtbXJhdmFwaTE2In0.HEUGOzuyzJbiE0oz4RrwEQ'
 
-#-----------------------top 10 airports by flight count-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-----------------------NOT FOR GRADING!!!!!!!!!!!!!!!!-------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------
+# the idea was that one can choose to look at the subplots either as horizontal or vertical barcharts, my first 
+# attempt didn't work. I tried a again and now half of it is working, with the update the left graph changes but it's
+# not a subplot anymore. Rather it is a full plot and on top is still the left subplot horizontally and for the 
+# vertical one only graph background, since the update with the button is not subplots anymore, it doesn't take the
+# arguments for the 2nd x & y axis. I couldn't find a solution and handed in the other version "working top 10", but 
+# I would appreciate if you could look at it and if I made an obvious mistake, could you pleas tell me.
+# 
+# Many thanks :)
+# Leyla
+#-------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------------------
 
 #-----------------------data preparation-----------------------------------------------------------------------
@@ -51,14 +71,11 @@ colours_airport_arr[7]= '#7eb774'
 #----------------------hovertemplate--------------------------------------------------------------------
 hovertemplate= '<b>%{customdata}</b>' + '<br>in %{hovertext}' + '<br>Number of flights: %{x}<extra></extra>'
 
+hovertemplate_vertical= '<b>%{customdata}</b>' + '<br>in %{hovertext}' + '<br>Number of flights: %{y}<extra></extra>'
+
 
 #---------------------making the figure-----------------------------------------------------------------
-fig= go.Figure()
 
-airlines_barchart= go.Bar(x= df_top_airlines.index, y= df_top_airlines['ORIGIN_AIRPORT'])
-
-fig.add_trace(airlines_barchart)
-#fig.show()
 
 #subplots
 fig1= make_subplots(rows= 1, cols=2, specs=[[{'type': 'bar'},{'type': 'bar'}]],subplot_titles=('Departure flight count', 'Arrival flight count'),
@@ -69,23 +86,23 @@ departure_airport= go.Bar(x= df_top_airports_departure['AIRLINE'],y= df_top_airp
                           hovertext= df_top_airports_departure['CITY'] ,hovertemplate=hovertemplate)
 #subplot arrival
 arrival_airports= go.Bar(x= df_top_airports_arrival['AIRLINE'],y= df_top_airports_arrival['IATA_CODE'],  marker_color= colours_airport_arr, orientation= 'h', customdata=df_top_airports_arrival['AIRPORT'],
-                         hovertext= df_top_airports_arrival['CITY'],hovertemplate=hovertemplate)
+                         hovertext= df_top_airports_arrival['CITY'], hovertemplate=hovertemplate)
 
 fig1.add_trace(departure_airport, row= 1, col=1)
 fig1.add_trace(arrival_airports, row= 1, col=2)
 
-departure_airport_vertical= go.Bar(x= df_top_airports_departure['IATA_CODE'], y= df_top_airports_departure['AIRLINE'], marker_color= colours_airport,orientation='v', visible=False)
-arrival_airports_vertical= go.Bar(x= df_top_airports_arrival['IATA_CODE'], y= df_top_airports_arrival['AIRLINE'], marker_color= colours_airport_arr,orientation='v', visible= False)
+departure_airport_vertical= go.Bar(x= df_top_airports_departure['IATA_CODE'], y= df_top_airports_departure['AIRLINE'], marker_color= colours_airport, orientation='v', visible = False, customdata= df_top_airports_departure['AIRPORT'], hovertext= df_top_airports_departure['CITY'], hovertemplate=hovertemplate_vertical)
+arrival_airports_vertical= go.Bar(x= df_top_airports_arrival['IATA_CODE'], y= df_top_airports_arrival['AIRLINE'], marker_color= colours_airport_arr, orientation='v', visible = False, customdata= df_top_airports_departure['AIRPORT'], hovertext= df_top_airports_departure['CITY'], hovertemplate=hovertemplate_vertical)
 
 fig1.add_trace(departure_airport_vertical, row=1, col= 1)
 fig1.add_trace(arrival_airports_vertical, row= 1, col=2)
 
 #layout
-fig1.update_layout(showlegend= False,title= 'Top 10 airports by flight count', title_font_size= 25, title_font_family= 'Arial black',title_x=0.5, yaxis= dict(autorange= 'reversed'), yaxis2= dict(autorange= 'reversed'),
+fig1.update_layout(showlegend= False,title= 'Top 10 airports by flight count', title_font_size= 25, title_font_family= 'Arial black',title_x=0.5, yaxis= dict(autorange= 'reversed'), yaxis2= dict(autorange= 'reversed'), plot_bgcolor= '#fff',
                    updatemenus= [
                       dict(active= 0, buttons = list([
-                          dict(label= 'Horizontal bar chart', method= 'update', args= [{'visible': [True, True,False, False]}]),
-                          dict(label= 'Vertical bar chart', method= 'update', args= [{'visible': [False, False, True, True]}])
+                          dict(label= 'Horizontal bar chart', method= 'update', args= [{'visible': [True, True,False, False]}, {'xaxis': df_top_airports_departure['AIRLINE'],'yaxis': {'y': df_top_airports_departure['IATA_CODE'], 'autorange': 'reversed'}}, {'xaxis2': df_top_airports_arrival['AIRLINE'],'yaxis2': df_top_airports_arrival['IATA_CODE']}]),
+                          dict(label= 'Vertical bar chart', method= 'update', args= [{'visible': [False, False, True, True]}, {'xaxis': df_top_airports_departure['IATA_CODE'], 'yaxis': df_top_airports_departure['AIRLINE']}, {'xaxis2': df_top_airports_arrival['IATA_CODE'], 'yaxis2': df_top_airports_arrival['AIRLINE']}])
                           ]), direction= 'down',pad={"r": 10, "t": 10}, showactive= True,x=0, xanchor= 'left', yanchor= 'bottom'
                           )]
                       )
