@@ -58,7 +58,8 @@ df_haul_by_distance_airline = df_haul_by_distance.sort_values(by= ['AIRLINE', 'H
 hovertemplate= '<b>%{customdata}</b><br>' + '<br>Number of flights: %{y}<extra></extra>'
 
 #for trace 1
-hovertemplate_all_flights= '<extra></extra>'#hoverinfo= None didn't work, so had to get a bit creative
+hovertemplate_all_flights= '<extra></extra>'
+#hoverinfo= None didn't work, so had to get a bit creative
 
 #numbers on trace 1 bar chart
 array_count = [df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'long haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'mid haul']['HAUL_TYP'].count(), df_haul_by_distance[df_haul_by_distance['HAUL_TYP'] == 'short haul']['HAUL_TYP'].count()]
@@ -122,58 +123,3 @@ fig.update_layout(barmode = 'stack', title = 'Flights categorized by their dista
                       )
                   ])
 fig.show()
-
-
-
-
-
-
-
-
-
-
-
-
-# for i in df_haul_by_distance:
-#     if (df['DISTANCE'] < 807):
-#         df.insert(2, 'HAUL_TYP', 'short haul')
-#     elif (df['DISTANCE'] > 2765):
-#         df.insert(2, 'HAUL_TYP', 'long haul')
-#     else: df.insert(2, 'HAUL_TYP', 'mid haul')
-#tried with for loop, didn't work, tried np.where(), but only works for 2 values
-
-# df_haul_by_distance['HAUL_TYP']= 'short haul'
-# print(df_haul_by_distance["HAUL_TYP"])
-
-#print(df_haul_by_distance)
-
-
-# for i in df_haul_by_distance:
-    # if ((df_haul_by_distance['DISTANCE'][i] > 2765).any()):
-    #     print()
-    #     df_haul_by_distance = df_haul_by_distance['HAUL_TYP'].replace('short haul', 'long haul') 
-    # elif ((807 <= df_haul_by_distance['DISTANCE'] <= 2765).any()):
-
-# df_haul_by_distance["HAUL_TYP"] = df_haul_by_distance['HAUL_TYP'].replace('short haul', 'mid haul')
-# df_haul_by_distance[df_haul_by_distance['DISTANCE'] < 807]["HAUL_TYP"] = "short haul"
-# df_haul_by_distance[df_haul_by_distance['DISTANCE'] > 2765]['HAUL_TYP'] = df_haul_by_distance[df_haul_by_distance['DISTANCE'] > 2765]["HAUL_TYP"].replace('mid haul',"long haul")
-
-# df_haul_by_distance['HAUL_TYP'] = df_haul_by_distance['DISTANCE'].transform(lambda x: 'short haul' if x < 807  else 'mid haul')
-
-# df_haul_by_distance['HAUL_TYP'] = np.where(df['DISTANCE']< 807, 'short haul', np.NAN)
-
-# df_haul_by_distance['HAUL_TYP'] = np.where(df['DISTANCE']< 807, 'short haul', np.NAN)
-# df_haul_by_distance['HAUL_TYP'] = df_haul_by_distance.loc[df['DISTANCE']< 807, 'short haul']
-# df['HAUL_TYP'] = np.where(df['DISTANCE']> 2765, 'long haul', 'mid haul')
-# df['HAUL_TYP'] = np.where((df['DISTANCE']>= 807) & (df['DISTANCE']<= 2765), 'short haul')
-
-# conditions = [
-#     (df_haul_by_distance['DISTANCE'] < 807),
-#     (df_haul_by_distance['DISTANCE'] >= 807) & (df_haul_by_distance['DISTANCE'] <= 2765),
-#     (df_haul_by_distance['DISTANCE'] > 2765)]
-# choices = ['short haul', 'mid haul', 'long haul']
-# df_haul_by_distance['HAUL_TYP'] = np.select(conditions, choices)
-
-
-# print(df_haul_by_distance['HAUL_TYP'] == 'short haul')
-# df_mid_haul_by_distance = df[807 <= df['DISTANCE']<= 2765]
